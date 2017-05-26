@@ -54,6 +54,7 @@ import java.util.Map;
 import static java.lang.Math.abs;
 import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
+import static java.lang.Math.pow;
 import static java.lang.Math.sin;
 import static java.lang.Math.toDegrees;
 
@@ -94,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     protected  Button fakeButton;
 
     //String SendURL = "https://routeme2app.mybluemix.net/api/check_location";
-    String SendURL = "https://requestb.in/1eb09n01";
+    String SendURL = "https://requestb.in/1et40631";
     String BasicAuth;
 
     Button DegValButton;
@@ -176,6 +177,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     String[] fileLines;
     String[] fileIndividual;
+
+    float b_lat = 0;
+    float b_long = 0;
+    float b_accuracy = 0;
 
     String modeParam = "walking";
 
@@ -300,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         // Kick off the process of building a GoogleApiClient and requesting the LocationServices
         // API.
         buildGoogleApiClient();
-        for(llindex = 0; llindex < 20; llindex++){
+        for(llindex = 0; llindex < 10; llindex++){
             LastLocalBeacons [llindex] = 1;
         }
     }
@@ -567,7 +572,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                         }
                         //SimBecVal1.setText(Integer.toString(findRSSIavg(3)));
                         SimBecVal1.setText(Integer.toString((rssi)));
-                        if (rssi > -67){
+                        if (rssi > -63){
                             WhichStop = "north_science_hill_busstop";
                         }
                     }
@@ -581,7 +586,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                         LastLocalBeacons[LastLocalIndex] = 0;
                     }
                     LastLocalIndex++;
-                    if (LastLocalIndex > 20){
+                    if (LastLocalIndex > 10){
                         LastLocalIndex = 0;
                     }
                     // keeps track the last 20 beacon readings maily to determine if we got
@@ -606,7 +611,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                         int lineIndex;
                         float CurrentDiff;
 
-                        float [][] Lowest4 = new float[Kneighors][6];
+                        float [][] Lowest4 = new float[Kneighors][8];
                         // initializing array to be filled with high numbers or comparison will not work
                         for (int initindex = 0 ; initindex< Kneighors;initindex++ ){
                             for (int subinitindex = 0; subinitindex < 3; subinitindex++){
@@ -638,6 +643,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                                             Lowest4[bumpindex][3] = Lowest4[bumpindex - 1][3]; // replacing because we found lower
                                             Lowest4[bumpindex][4] = Lowest4[bumpindex - 1][4];
                                             Lowest4[bumpindex][5] = Lowest4[bumpindex - 1][5];
+                                            Lowest4[bumpindex][6] = Lowest4[bumpindex - 1][6];
+                                            Lowest4[bumpindex][7] = Lowest4[bumpindex - 1][7];
                                         }
                                         Lowest4[lowindex][0] = CurrentDiff; // replacing because we found lower
                                         Lowest4[lowindex][1] = Float.parseFloat(fileIndividual[3]);
@@ -645,6 +652,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                                         Lowest4[lowindex][3] = Float.parseFloat(fileIndividual[0]);
                                         Lowest4[lowindex][4] = Float.parseFloat(fileIndividual[1]);
                                         Lowest4[lowindex][5] = Float.parseFloat(fileIndividual[2]);
+                                        Lowest4[lowindex][6] = Float.parseFloat(fileIndividual[6]);
+                                        Lowest4[lowindex][7] = Float.parseFloat(fileIndividual[7]);
                                         break;
                                     }
                                 }
@@ -663,8 +672,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                                     " A:" + Float.toString(Lowest4[0][3]) + " B:" + Float.toString(Lowest4[0][4]) + " C:" + Float.toString(Lowest4[0][5]));
                             TV2.setText("mag: " + Float.toString(Lowest4[1][0]) + " deg: " + Float.toString(Lowest4[1][1]) + " rad: " + Float.toString(Lowest4[1][2]) +
                                     " A:" + Float.toString(Lowest4[1][3]) + " B:" + Float.toString(Lowest4[1][4]) + " C:" + Float.toString(Lowest4[1][5]));
-                            TV3.setText("mag: " + Float.toString(Lowest4[2][0]) + " deg: " + Float.toString(Lowest4[2][1]) + " rad: " + Float.toString(Lowest4[2][2]) +
-                                    " A:" + Float.toString(Lowest4[2][3]) + " B:" + Float.toString(Lowest4[2][4]) + " C:" + Float.toString(Lowest4[2][5]));
+                            TV3.setText("LatLongTest: "+ Lowest4[0][6]  + ","+ Lowest4[1][6]  + ","+ Lowest4[2][6]  + ","+ Lowest4[3][6]  + ","+"\n"
+                                    + Lowest4[0][7]  + ","+ Lowest4[1][7]  + ","+ Lowest4[2][7]  + ","+ Lowest4[3][7]);
                             //TV4.setText("mag: " + Float.toString(Lowest4[3][0]) + " deg: " + Float.toString(Lowest4[3][1]) + " rad: " + Float.toString(Lowest4[3][2]) +
                              //       " A:" + Float.toString(Lowest4[3][3]) + " B:" + Float.toString(Lowest4[3][4]) + " C:" + Float.toString(Lowest4[3][5]));
 
@@ -686,6 +695,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                             float CosSum = 0;
                             float xSum = 0;
                             float ySum = 0;
+                            float latSum = 0;
+                            float longSum = 0;
                             int MagTotal = 0;
 
                             if (weightHold == -1) {  // set to perfect match
@@ -700,6 +711,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                                     //Log.d("myTag", "angle: " + Lowest4[lowindex][1] + " Sin: " + SinSum + " Cos: " + CosSum);
                                     ySum += ((1 / Lowest4[lowindex][0]) / weightHold) * (Lowest4[lowindex][2] * sin(Math.toRadians(Lowest4[lowindex][1])));
                                     xSum += ((1 / Lowest4[lowindex][0]) / weightHold) * (Lowest4[lowindex][2] * cos(Math.toRadians(Lowest4[lowindex][1])));
+                                    latSum += ((1 / Lowest4[lowindex][0]) / weightHold) * (Lowest4[lowindex][6]);
+                                    longSum += ((1 / Lowest4[lowindex][0]) / weightHold) * (Lowest4[lowindex][7]);
                                     foundRadius += ((1 / Lowest4[lowindex][0]) / weightHold) * (Lowest4[lowindex][2]);
                                     MagTotal += Lowest4[lowindex][0];
                                 }
@@ -710,6 +723,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                             DegreeOut.setText("Degree:" + Float.toString(foundDeg));
                             RadiusOut.setText("Radius:" + Float.toString(foundRadius));
                             MyCartText.setText("x" + xSum + "\n" + "  y" + ySum);
+                            b_lat = latSum;
+                            b_long = longSum;
+                            b_accuracy = getBecAccuracy(CurrentSimBecVal1, CurrentSimBecVal2, CurrentSimBecVal3);
+                            TV4.setText("BecLatLong: " + Float.toString(b_lat) + " , " + Float.toString(b_long) + " , " + Float.toString(b_accuracy));
                             //MyCartText.setText("x"+Double.toString(foundRadius*cos(Math.toRadians(foundDeg)))+"\n"
                             //       +"  y"+Double.toString(foundRadius*sin(Math.toRadians(foundDeg))) );
                             // how you set your ouput text displays for testing
@@ -726,6 +743,26 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
                 }
             };
+    public float getBecAccuracy(float RSSIa,float RSSIb, float RSSIc){
+        int totalRSSI = abs((int) (RSSIa+RSSIb+RSSIc)); // get the sum of rssi
+        float foundaccuracy = 100;
+        if (totalRSSI >= 258) {
+            foundaccuracy = (float)(0 * totalRSSI + 6.8399);
+        }
+        if ((239 <= totalRSSI)&&(totalRSSI < 258)) {
+            foundaccuracy = (float)(0.035237867954*totalRSSI + -2.24485586103);
+        }
+        if ((220 <= totalRSSI)&&(totalRSSI < 239)) {
+            foundaccuracy = (float)(0.128836566109 *totalRSSI + -24.5433842661);
+        }
+        if ((201  <= totalRSSI)&&(totalRSSI < 220)) {
+            foundaccuracy = (float)(0.0564741573133 *totalRSSI + -8.88146057467);
+        }
+        if ((totalRSSI < 201)) {
+            foundaccuracy = (float)(0.0801475319747 *totalRSSI + -14.0348725814);
+        }
+        return (foundaccuracy);
+    }
 
 
     public void startUpdatesButtonHandler(View view) {
@@ -894,7 +931,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         myparams.put("stop_name", WhichStop);
         // to determine if we are on the bus or walking, we check the last 20 readings for any from
         // bus stop
-        for (a = 0; a < 20 ; a++){
+        for (a = 0; a < 10 ; a++){
             if (LastLocalBeacons[a] == 1){
                 modeParam = "walking";
                 break;
@@ -903,6 +940,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             }
         }
         myparams.put("mode", modeParam );
+
+        myparams.put("b_latitude", Float.toString(b_lat));
+        myparams.put("b_longitude", Float.toString(b_long));
+        myparams.put("b_accuracy_dist", Float.toString(b_accuracy));
+
+        double f_lat = (double) ((1/((pow((double)b_accuracy,-2))+(pow(mCurrentLocation.getAccuracy(),-2)))) *
+                ((b_lat*(pow((double)b_accuracy,-2))) + (mCurrentLocation.getLatitude()*(pow(mCurrentLocation.getAccuracy(),-2)))));
+        double f_long = (double) ((1/((pow((double)b_accuracy,-2))+(pow(mCurrentLocation.getAccuracy(),-2)))) *
+                ((b_long*(pow((double)b_accuracy,-2))) + (mCurrentLocation.getLongitude()*(pow(mCurrentLocation.getAccuracy(),-2)))));
+
+        myparams.put("f_latitude",Double.toString(f_lat));
+        myparams.put("f_longitude",Double.toString(f_long));
 
         BasicAuth = "testing@aol.com" + ":" + "testing";
         BasicAuth = Base64.encodeToString(BasicAuth.getBytes(), Base64.DEFAULT);
