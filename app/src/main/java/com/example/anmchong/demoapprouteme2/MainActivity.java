@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,6 +24,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,7 +63,7 @@ import static java.lang.Math.toDegrees;
 
 public class MainActivity extends AppCompatActivity implements LocationListener, ConnectionCallbacks, OnConnectionFailedListener{
 
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 8000;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 5000;
     /**
      * The fastest rate for active location updates. Exact. Updates will never be more frequent
      * than this value.
@@ -95,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     protected  Button fakeButton;
 
     String SendURL = "https://routeme2app.mybluemix.net/api/check_location";
-    //String SendURL = "https://requestb.in/1hnp9hs1";
+    //String SendURL = "https://requestb.in/142cbyh1";
     String BasicAuth;
 
     Button DegValButton;
@@ -135,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     private static final int REQUEST_ENABLE_BT = 1;
 
     int maxReadings = 4;
+    boolean transition = true;
 
     private static final long SCAN_PERIOD = 100000;
 
@@ -144,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     String WhichStop = "none";
     int ProximityBecVal;
     int BusClearindex = 0;
+    boolean atdestination = false;
 
 
 // Beacon names here, this app will only take data on beacons in this list....
@@ -156,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     String MeasuredBUS921 = "mnZr";
     String MeasuredBUSd2Rq = "d2Rq";
     String MeasuredBUSpYEM = "pYEM";
-    //String MeasuredBUS928 = "Uos6";
+    String MeasuredBUSFAKE = "Uos6";
     //String MeasuredBUS921 = "d2Rq";
 
     int[][] BeaconVal = new int[12][256];
@@ -183,7 +187,23 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     float b_long = 0;
     float b_accuracy = 0;
 
+    MediaPlayer NoStopSound;
+    MediaPlayer SouthStopSound;
+    MediaPlayer BoardingZoneSound;
+    MediaPlayer SeeBusSound;
+    MediaPlayer SeeDestinationSound;
+
     String modeParam = "walking";
+
+    //My States
+        final int NoStop = 0;
+        final int SouthStop = 1;
+        final int NorthStop = 2;
+        final int BoardingZone = 3;
+        final int OnBus =4;
+        final int OffBus = 5;
+
+    public int muserstate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)  {
@@ -203,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         MyLatLongTextView = (TextView) findViewById(R.id.LatLongTextView);
         MyCartText = (TextView) findViewById(R.id.CartText);
         TripInstanceId = (EditText)findViewById(R.id.tripinstanceidedittext);
-        TripInstanceId.setText("d09bb388429cc600a287840fb9862e9a");
+        TripInstanceId.setText("045a9aa7d8d33af86a879364fbf244ef");
 
         RadiusOut = (TextView) findViewById(R.id.RadiusOut);
         DegreeOut = (TextView) findViewById(R.id.DegreeOut);
@@ -221,6 +241,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         Arrays.fill(BeaconVal[1],1);
         Arrays.fill(BeaconVal[2],1);
         Arrays.fill(BeaconVal[3],1);
+
+        muserstate = NoStop;
+
+        NoStopSound = MediaPlayer.create(this, R.raw.continueforward);
+        SouthStopSound = MediaPlayer.create(this, R.raw.wrongbusstop);
+        BoardingZoneSound = MediaPlayer.create(this, R.raw.boardingzone);
+        SeeBusSound = MediaPlayer.create(this, R.raw.seebus);
+        SeeDestinationSound = MediaPlayer.create(this, R.raw.seedestination);
 
 // opening file
 
@@ -491,7 +519,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                             StringOfDataIB +=" " + rssi;
                             TV1.setText(Integer.toString(rssi));
                         }
+                        MeasuredBUSFAKE
                 */
+                    if (FoundMeasureIB.compareTo(MeasuredBUSFAKE) == 0) {
+                        //StringOfDataIB +="" + rssi;
+                        TV1.setText("BUS: FAKE" + Integer.toString(rssi));
+                        ColorLayout.setBackgroundColor(Color.GREEN);
+                        LastBusSeen = "FAKE";
+                        LastLocalBeacons[BusClearindex] = 1;
+                    }
                     if (FoundMeasureIB.compareTo(MeasuredBUS928) == 0) {
                         //StringOfDataIB +="" + rssi;
                         TV1.setText("BUS: 928" + Integer.toString(rssi));
@@ -516,9 +552,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                     if (FoundMeasureIB.compareTo(MeasuredBUSpYEM) == 0) {
                         //StringOfDataIB +="" + rssi;
                         TV1.setText("BUS: pYEM" + Integer.toString(rssi));
-                        ColorLayout.setBackgroundColor(Color.RED);
+                        ColorLayout.setBackgroundColor(Color.GREEN);
                         LastBusSeen = "pYEM";
                         LastLocalBeacons[BusClearindex] = 1;
+                    }
+                    if (FoundMeasureIB.compareTo("uspD") == 0) {
+                        ColorLayout.setBackgroundColor(Color.BLUE);
+                        WhichStop = "Destination";
+                        //LastBusSeen = "uspD";
+                        //LastLocalBeacons[BusClearindex] = 1;
                     }
                     if (FoundMeasureIB.compareTo(MeasuredIbeaconxW1I) == 0) {
                         StringOfDataIB +="" + rssi;
@@ -723,6 +765,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                             if (ProximityBecVal > - 67){
                                 WhichStop = "south_science_hill_bustop";
                             }
+                            if (atdestination == true){
+                                WhichStop = "Destination";
+                            }
                             //MyCartText.setText("x"+Double.toString(foundRadius*cos(Math.toRadians(foundDeg)))+"\n"
                             //       +"  y"+Double.toString(foundRadius*sin(Math.toRadians(foundDeg))) );
                             // how you set your ouput text displays for testing
@@ -838,7 +883,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     public void stopUpdatesButtonHandler(View view) {
             stopLocationUpdates();
-
+        muserstate = NoStop;
+        transition = true;
         scanLeDevice(false);
         ColorLayout.setBackgroundColor(Color.WHITE);
         int avgindex = 0;
@@ -936,7 +982,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             if (LastLocalBeacons[a] == 1){
                 modeParam = "walking";
                 break;
-            } else if (SimBecVal1.getText().toString().compareTo("-101") !=0 ){
+            } else if (muserstate == BoardingZone ){
                 modeParam = "bus";
             }
         }
@@ -973,8 +1019,90 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         myparams.put("f_latitude",Double.toString(f_lat));
         myparams.put("f_longitude",Double.toString(f_long));
 
-        StringOfDataFinal += "" + ActualDeg.getText() + "," + ActualRad.getText() + "," + f_lat + ","
-                + f_long + "," +WhichStop+"\n";
+//        StringOfDataFinal += "" + ActualDeg.getText() + "," + ActualRad.getText() + "," + f_lat + ","
+//                + f_long + "," +WhichStop+"\n";
+        /////////////////////////////STATE MACHINE/////////////////////////////////////////////////
+        /* audio ref
+        * NoStopSound = MediaPlayer.create(this, R.raw.continueforward);
+        SouthStopSound = MediaPlayer.create(this, R.raw.wrongbusstop);
+        BoardingZoneSound = MediaPlayer.create(this, R.raw.boardingzone);
+        SeeBusSound = MediaPlayer.create(this, R.raw.seebus);
+        SeeDestinationSound = MediaPlayer.create(this, R.raw.seedestination);*/
+        switch(muserstate){
+            case NoStop:
+                if (transition == true){
+                    NoStopSound.start();
+                }
+                if (WhichStop.compareTo("south_science_hill_bustop")==0){
+                    muserstate = SouthStop;
+                    transition = true;
+                }
+                else if (WhichStop.compareTo("north_science_hill_busstop")==0){
+                    muserstate = NorthStop;
+                    transition = true;
+                }
+                else
+                    transition = false;
+                break;
+
+            case SouthStop:
+                if (transition == true){
+                    SouthStopSound.start();
+                }
+                if (WhichStop.compareTo("north_science_hill_busstop")==0){
+                    muserstate = NorthStop;
+                    transition = true;
+                }else
+                    transition = false;
+                break;
+
+            case NorthStop:
+                if (transition == true){
+                    //play audio
+                }
+                if (WhichStop.compareTo("south_science_hill_bustop")==0){
+                    muserstate = SouthStop;
+                    transition = true;
+                }
+                // boarding zone coordinates: low 36.999904, -122.062415
+                // high : 36.999949, -122.062366
+                if ((f_lat < 36.999949)&&(f_lat > 36.999904) &&((f_long <-122.062366 )&&(f_long > -122.062415))){
+                    muserstate = BoardingZone;
+                    transition = true;
+                    BoardingZoneSound.start();
+                }
+                break;
+            case BoardingZone:
+                ColorLayout.setBackgroundColor(Color.YELLOW);
+                if((LastBusSeen != "none")&&(transition == true)){
+                    //play audio
+                    SeeBusSound.start();
+                    transition = false;
+                }
+                if (modeParam == "bus"){
+                    muserstate = OnBus;
+                    transition = true;
+                }
+                break;
+
+            case OnBus:
+                if((WhichStop == "Destination")&&(transition == true)){
+                    //play audio
+                    SeeDestinationSound.start();
+                    transition = false;
+                }
+                break;
+            case OffBus:
+                if(LastBusSeen == "none"){
+                    //play audio
+                }
+                break;
+        }
+
+
+
+        StringOfDataFinal += "" + b_lat + "," + b_long + "," + b_accuracy + "," + mCurrentLocation.getLatitude() + "," +
+                mCurrentLocation.getLongitude() + "," + mCurrentLocation.getAccuracy() + "," +f_lat + "," +f_long + "," + WhichStop +"\n";
 
         BasicAuth = "testing@aol.com" + ":" + "testing";
         BasicAuth = Base64.encodeToString(BasicAuth.getBytes(), Base64.DEFAULT);
