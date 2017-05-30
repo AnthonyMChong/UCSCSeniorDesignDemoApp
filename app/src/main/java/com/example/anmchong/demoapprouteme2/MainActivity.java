@@ -1065,8 +1065,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                     transition = true;
                 }
                 // boarding zone coordinates: low 36.999904, -122.062415
-                // high : 36.999949, -122.062366
-                if ((f_lat < 36.999949)&&(f_lat > 36.999904) &&((f_long <-122.062366 )&&(f_long > -122.062415))){
+                // high : 36.999985, -122.062361
+                if ((f_lat < 36.999985)&&(f_lat > 36.999904) &&((f_long <-122.062361 )&&(f_long > -122.062415))){
                     muserstate = BoardingZone;
                     transition = true;
                     BoardingZoneSound.start();
@@ -1082,6 +1082,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 if (modeParam == "bus"){
                     muserstate = OnBus;
                     transition = true;
+                }
+                if (( WhichStop == "none")&&(LastBusSeen == "none")){
+                    muserstate = NoStop;
+                    transition = false;
+                    ColorLayout.setBackgroundColor(Color.WHITE);
                 }
                 break;
 
