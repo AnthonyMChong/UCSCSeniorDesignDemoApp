@@ -96,8 +96,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     protected Button mStopUpdatesButton;
     protected  Button fakeButton;
 
-    //String SendURL = "https://routeme2app.mybluemix.net/api/check_location";
-    String SendURL = "https://requestb.in/142cbyh1";
+    String SendURL = "https://routeme2app.mybluemix.net/api/check_location";
+    //String SendURL = "https://requestb.in/142cbyh1";
     String BasicAuth;
 
     Button DegValButton;
@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         MyLatLongTextView = (TextView) findViewById(R.id.LatLongTextView);
         MyCartText = (TextView) findViewById(R.id.CartText);
         TripInstanceId = (EditText)findViewById(R.id.tripinstanceidedittext);
-        TripInstanceId.setText("1aa9b694859a72661c6dca0af0d8d83f");
+        TripInstanceId.setText("6a82216269835677a65cb7c4a4bcbaab");
 
         RadiusOut = (TextView) findViewById(R.id.RadiusOut);
         DegreeOut = (TextView) findViewById(R.id.DegreeOut);
@@ -764,7 +764,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                             }else if (240 <= abs((int) (CurrentSimBecVal1+CurrentSimBecVal2+CurrentSimBecVal3))){
                                 WhichStop = "none";
                             }
-                            if (ProximityBecVal > - 67){
+                            if (ProximityBecVal > - 70){
                                 WhichStop = "south_science_hill_bustop";
                             }
                             if (atdestination == true){
@@ -1088,8 +1088,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                     transition = false;
                 }
                 // boarding zone coordinates: low 36.999904, -122.062415
-                // high : 36.999985, -122.062361
-                if ((f_lat < 36.999985)&&(f_lat > 36.999904) &&((f_long <-122.062361 )&&(f_long > -122.062415))){
+                // high : 36.999985, -122.06235
+                if ((f_lat < 36.999985)&&(f_lat > 36.999904) &&((f_long <-122.06235 )&&(f_long > -122.062415))){
                     muserstate = BoardingZone;
                     transition = true;
                     BoardingZoneSound.start();
