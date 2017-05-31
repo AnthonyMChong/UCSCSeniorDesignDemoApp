@@ -96,8 +96,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     protected Button mStopUpdatesButton;
     protected  Button fakeButton;
 
-    String SendURL = "https://routeme2app.mybluemix.net/api/check_location";
-    //String SendURL = "https://requestb.in/142cbyh1";
+    //String SendURL = "https://routeme2app.mybluemix.net/api/check_location";
+    String SendURL = "https://requestb.in/142cbyh1";
     String BasicAuth;
 
     Button DegValButton;
@@ -169,8 +169,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     int[] BusClear = new int [10];
 
     int[] LastLocalBeacons = new int[21];
-    int LastLocalIndex = 0;
     int llindex =0;
+    int localBecCount = 0;
+    int transitBecCount = 0;
 
 
     int BeaconCount = 4; // number of beacons we want to read
@@ -202,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         final int BoardingZone = 3;
         final int OnBus =4;
         final int OffBus = 5;
+        final int OnBusCheck = 6;
 
     public int muserstate;
 
@@ -223,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         MyLatLongTextView = (TextView) findViewById(R.id.LatLongTextView);
         MyCartText = (TextView) findViewById(R.id.CartText);
         TripInstanceId = (EditText)findViewById(R.id.tripinstanceidedittext);
-        TripInstanceId.setText("045a9aa7d8d33af86a879364fbf244ef");
+        TripInstanceId.setText("1aa9b694859a72661c6dca0af0d8d83f");
 
         RadiusOut = (TextView) findViewById(R.id.RadiusOut);
         DegreeOut = (TextView) findViewById(R.id.DegreeOut);
@@ -332,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         // API.
         buildGoogleApiClient();
         for(llindex = 0; llindex < 10; llindex++){
-            LastLocalBeacons [llindex] = 1;
+            LastLocalBeacons [llindex] = 0;
         }
     }
 
@@ -585,7 +587,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                     }
                     if (FoundMeasureIB.compareTo(MeasuredIbeacond2Rq) == 0) {
                         StringOfDataIB +="" + rssi;
-                        TV3.setText("d2Rq:   " + Integer.toString(rssi));
+                       // TV3.setText("d2Rq:   " + Integer.toString(rssi));
                         BeaconVal [2][ReadingIndex[2]] = rssi;
                         ReadingIndex[2]++;
                         if (ReadingIndex[2]>maxReadings) {
@@ -610,13 +612,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                             (FoundMeasureIB.compareTo(MeasuredIbeaconUos6) == 0) |
                             (FoundMeasureIB.compareTo(MeasuredIbeacond2Rq) == 0) |
                             (FoundMeasureIB.compareTo(MeasuredIbeaconpYEM) == 0)) {
-                        LastLocalBeacons[LastLocalIndex] = 1;
+                        LastLocalBeacons[BusClearindex] = 0;
                     }else {
-                        LastLocalBeacons[LastLocalIndex] = 0;
+                        LastLocalBeacons[BusClearindex] = 1;
                     }
-                    LastLocalIndex++;
-                    if (LastLocalIndex > 10){
-                        LastLocalIndex = 0;
+                    BusClearindex++;
+                    if (BusClearindex > 10){
+                        BusClearindex = 0;
                     }
                     // keeps track the last 20 beacon readings maily to determine if we got
                     // on a bus
@@ -702,8 +704,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                             TV1.setText("mag: " + Float.toString(Lowest4[0][0]) + " deg: " + Float.toString(Lowest4[0][1]) + " rad: " + Float.toString(Lowest4[0][2]) +
                                     " A:" + Float.toString(Lowest4[0][3]) + " B:" + Float.toString(Lowest4[0][4]) + " C:" + Float.toString(Lowest4[0][5]));
                             TV2.setText(WhichStop);
-                            TV3.setText("LatLongTest: "+ Lowest4[0][6]  + ","+ Lowest4[1][6]  + ","+ Lowest4[2][6]  + ","+ Lowest4[3][6]  + ","+"\n"
-                                    + Lowest4[0][7]  + ","+ Lowest4[1][7]  + ","+ Lowest4[2][7]  + ","+ Lowest4[3][7]);
+                            //TV3.setText("LatLongTest: "+ Lowest4[0][6]  + ","+ Lowest4[1][6]  + ","+ Lowest4[2][6]  + ","+ Lowest4[3][6]  + ","+"\n"
+                             //       + Lowest4[0][7]  + ","+ Lowest4[1][7]  + ","+ Lowest4[2][7]  + ","+ Lowest4[3][7]);
                             //TV4.setText("mag: " + Float.toString(Lowest4[3][0]) + " deg: " + Float.toString(Lowest4[3][1]) + " rad: " + Float.toString(Lowest4[3][2]) +
                              //       " A:" + Float.toString(Lowest4[3][3]) + " B:" + Float.toString(Lowest4[3][4]) + " C:" + Float.toString(Lowest4[3][5]));
 
@@ -824,6 +826,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         } else if (modeParam == "bus") {
             modeParam = "walking";
         }
+        fakeButton.setText(modeParam);
     }
 
     public void RadUpClickListener(View view) {
@@ -901,7 +904,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 if (beaconindex == 1)
                     TV2.setText("avgUos6:" + "none");
                 if (beaconindex == 2)
-                    TV3.setText("avgd2Rq:" + "none");
+                   // TV3.setText("avgd2Rq:" + "none");
                 if (beaconindex == 3)
                     //TV4.setText("avgpYEM:" + "none");
                 AverageRSSI[beaconindex] = 0;
@@ -912,7 +915,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 if (beaconindex == 1)
                     TV2.setText("avgUos6:" + AverageRSSI[beaconindex]);
                 if (beaconindex == 2)
-                    TV3.setText("avgd2Rq:" + AverageRSSI[beaconindex]);
+                  //  TV3.setText("avgd2Rq:" + AverageRSSI[beaconindex]);
                 if (beaconindex == 3){
 
                 }
@@ -960,33 +963,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         myparams.put("longitude", Double.toString(mCurrentLocation.getLongitude()));
         myparams.put("nearest", NearestParam );
         myparams.put("accuracy_dist", Integer.toString((int)mCurrentLocation.getAccuracy()));
+        myparams.put("mode", modeParam );
+
         TV4.setText(Integer.toString((int)mCurrentLocation.getAccuracy()));
         int a;
-        for (a = 0; a < 9 ; a++){
-            if (LastLocalBeacons[a] == 1){
-                break;
-            } else {
-                LastBusSeen = "none";
+        int nobusscan = 0;
+        for (a = 0; a < 9 ; a++){   //clearing LastBusSeen if the last 10 scans did not see bus
+            if (LastLocalBeacons[a] == 0){
+                nobusscan++;
             }
+        }
+        if (nobusscan >= 9){    // clearing flags to make sure we are not in range of bus or walking
+            modeParam = "walking";
+            LastBusSeen = "none";
         }
         if (LastBusSeen != "none") {
             myparams.put("transit_name", LastBusSeen);
         }
-        LastLocalBeacons[BusClearindex] = 0;
+        //LastLocalBeacons[BusClearindex] = 0;
 
         if (WhichStop.compareTo("none")!=0)
             myparams.put("stop_name", WhichStop);
-        // to determine if we are on the bus or walking, we check the last 20 readings for any from
-        // bus stop
-        for (a = 0; a < 10 ; a++){
-            if (LastLocalBeacons[a] == 1){
-                modeParam = "walking";
-                break;
-            } else if (muserstate == BoardingZone ){
-                modeParam = "bus";
-            }
-        }
-        myparams.put("mode", modeParam );
 
         if (WhichStop.compareTo("north_science_hill_busstop")==0) {
             myparams.put("b_latitude", Float.toString(b_lat));
@@ -1064,6 +1061,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                     muserstate = SouthStop;
                     transition = true;
                 }
+                // out of bus stop
+                if (WhichStop.compareTo("none")==0){
+                    muserstate = NoStop;
+                    transition = false;
+                }
+                if (LastBusSeen != "none"){
+                    muserstate = OnBusCheck;
+                    SeeBusSound.start();
+                    transition = false;
+                }
+                localBecCount = 0;
+                transitBecCount = 0;
+                for (a = 0; a < 10 ; a++){
+                    if (LastLocalBeacons[a] == 1){
+                        transitBecCount++;
+                    } else
+                        localBecCount++;
+                }
+                if (transitBecCount >=9){
+                    muserstate = OnBus;
+                    transition = true;
+                }
+                if (localBecCount>=9){
+                    muserstate = NorthStop;
+                    transition = false;
+                }
                 // boarding zone coordinates: low 36.999904, -122.062415
                 // high : 36.999985, -122.062361
                 if ((f_lat < 36.999985)&&(f_lat > 36.999904) &&((f_long <-122.062361 )&&(f_long > -122.062415))){
@@ -1072,6 +1095,28 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                     BoardingZoneSound.start();
                 }
                 break;
+
+            case OnBusCheck:
+                // cannot see a bus anymore, we go back to on route
+                // checks the last 10 rssi readings
+                localBecCount = 0;
+                transitBecCount = 0;
+                for (a = 0; a < 10 ; a++){
+                    if (LastLocalBeacons[a] == 1){
+                        transitBecCount++;
+                    } else
+                        localBecCount++;
+                }
+                if (transitBecCount >=9){
+                    muserstate = OnBus;
+                    transition = true;
+                }
+                if (localBecCount>=9){
+                    muserstate = NorthStop;
+                    transition = false;
+                }
+                break;
+
             case BoardingZone:
                 ColorLayout.setBackgroundColor(Color.YELLOW);
                 if((LastBusSeen != "none")&&(transition == true)){
@@ -1079,9 +1124,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                     SeeBusSound.start();
                     transition = false;
                 }
-                if (modeParam == "bus"){
-                    muserstate = OnBus;
-                    transition = true;
+                if (LastBusSeen != "none"){
+                    muserstate = OnBusCheck;
+                    transition = false;
                 }
                 if (( WhichStop == "none")&&(LastBusSeen == "none")){
                     muserstate = NoStop;
@@ -1091,18 +1136,24 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 break;
 
             case OnBus:
+                modeParam = "bus";
                 if((WhichStop == "Destination")&&(transition == true)){
                     //play audio
                     SeeDestinationSound.start();
                     transition = false;
                 }
                 break;
+
             case OffBus:
                 if(LastBusSeen == "none"){
-                    //play audio
+                    modeParam = "walking";
                 }
                 break;
         }
+        TV3.setText(Integer.toString(muserstate) + LastLocalBeacons[0] + LastLocalBeacons[1]+
+                LastLocalBeacons[2] + LastLocalBeacons[3]+LastLocalBeacons[4] + LastLocalBeacons[5]+
+                LastLocalBeacons[6] + LastLocalBeacons[7]+LastLocalBeacons[8] + LastLocalBeacons[9]);
+        fakeButton.setText(modeParam);
 
 
 
