@@ -178,4 +178,13 @@ tools:context="com.example.anmchong.demoapprouteme2.DemoAppRouteMe2">
     android:text="Fake Bus"
     android:onClick="FakeBusHandler"/>
 
+    <Button
+        android:id="@+id/DemoButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/textView4"
+        android:layout_alignParentEnd="true"
+        android:onClick="infomodeHandler"
+        android:text="North" />
+
 </RelativeLayout>
